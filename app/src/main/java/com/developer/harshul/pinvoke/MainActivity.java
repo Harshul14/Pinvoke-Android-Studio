@@ -2,6 +2,9 @@ package com.developer.harshul.pinvoke;
 
 import android.os.Bundle;
 import android.widget.Toast;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
+import android.content.Intent;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 
@@ -10,6 +13,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+        ComponentName thisWidget = new ComponentName(this, CreditCardWidgetProvider.class);
+        int[] ids = appWidgetManager.getAppWidgetIds(thisWidget);
+        if (ids != null && ids.length > 0) {
+            Intent intent = new Intent(this, CreditCardWidgetConfigActivity.class);
+            intent.putExtra(CreditCardWidgetConfigActivity.EXTRA_VIEW_ALL_MODE, true);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
         setupViews();
     }
