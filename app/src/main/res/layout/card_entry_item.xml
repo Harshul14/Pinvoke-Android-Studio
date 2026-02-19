@@ -62,5 +62,13 @@
             app:icon="@drawable/ic_calendar_24"
             app:iconGravity="textStart" />
 
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/alarm_switch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/alarm_reminder_label"
+            android:layout_marginTop="8dp"
+            />
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

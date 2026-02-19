@@ -25,4 +25,6 @@
     <string name="max_cards_allowed">Maximum %d cards allowed.</string>
     <string name="please_add_at_least_one_card">Please add at least one card.</string>
     <string name="long_press_on_home_screen_and_select_widgets">Long press on home screen and select \'Widgets\' to add the Credit Card Widget.</string>
+    <string name="bill_due_message">Your %s bill is due today!</string>
+    <string name="alarm_reminder_label">Set Bill Reminder</string>
 </resources>
