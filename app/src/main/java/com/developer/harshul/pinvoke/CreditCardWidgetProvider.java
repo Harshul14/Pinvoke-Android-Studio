@@ -150,20 +150,20 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
 
         for (int i = 0; i < cardsArray.length(); i++) {
             JSONObject cardObj = cardsArray.getJSONObject(i);
-            String cardName = cardObj.optString("name", "Credit Card");
-            long originalDueDate = cardObj.optLong("dueDate", getDefaultDueDate());
+            Card card = Card.fromJson(cardObj, 0); // WidgetId irrelevant for this op
+
+            long originalDueDate = card.getDueDate();
             long updatedDueDate = updateOverdueDateToNextMonth(originalDueDate);
 
             if (updatedDueDate != originalDueDate) {
                 dataUpdated = true;
+                card.setDueDate(updatedDueDate);
+                card.setPaid(false); // Reset paid status for new month
             }
             
-            cardDataList.add(new CardData(cardName, updatedDueDate));
+            cardDataList.add(new CardData(card.getName(), card.getDueDate()));
 
-            JSONObject updatedCardObj = new JSONObject();
-            updatedCardObj.put("name", cardName);
-            updatedCardObj.put("dueDate", updatedDueDate);
-            updatedCardsArray.put(updatedCardObj);
+            updatedCardsArray.put(card.toJson());
         }
         
         Collections.sort(cardDataList, (c1, c2) -> Long.compare(c1.dueDate, c2.dueDate));

@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 public class CreditCardWidgetConfigActivity extends AppCompatActivity {
 
@@ -51,6 +52,7 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
     private List<CardEntry> cardEntries;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private CardRepository repository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +60,7 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
         setContentView(R.layout.activity_widget_config);
 
         initializeViews();
+        repository = new CardRepository(this);
         setupWidget();
         loadExistingData();
         setupEventListeners();
@@ -114,11 +117,11 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
         if (isViewAllMode) {
             loadAllCards();
         } else {
-            SharedPreferences prefs = getSharedPreferences(PREFS_NAME + appWidgetId, Context.MODE_PRIVATE);
-            String cardsDataJson = prefs.getString(CARDS_DATA_KEY, "");
-
-            if (!TextUtils.isEmpty(cardsDataJson)) {
-                parseAndLoadCards(cardsDataJson, appWidgetId);
+            List<Card> cards = repository.getCardsForWidget(appWidgetId);
+            if (!cards.isEmpty()) {
+                for (Card card : cards) {
+                    addCardEntry(card);
+                }
             } else {
                 addDefaultCard(appWidgetId);
             }
@@ -136,34 +139,18 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
         }
 
         for (int id : allWidgetIds) {
-            SharedPreferences prefs = getSharedPreferences(PREFS_NAME + id, Context.MODE_PRIVATE);
-            String cardsDataJson = prefs.getString(CARDS_DATA_KEY, "");
-            if (!TextUtils.isEmpty(cardsDataJson)) {
-                parseAndLoadCards(cardsDataJson, id);
+            List<Card> cards = repository.getCardsForWidget(id);
+            if (!cards.isEmpty()) {
+                for (Card card : cards) {
+                    addCardEntry(card);
+                }
             } else {
                 addDefaultCard(id);
             }
         }
     }
 
-    private void parseAndLoadCards(String cardsDataJson, int widgetId) {
-        try {
-            JSONArray cardsArray = new JSONArray(cardsDataJson);
-            for (int i = 0; i < cardsArray.length(); i++) {
-                JSONObject cardObj = cardsArray.optJSONObject(i);
-                if (cardObj != null) {
-                    String cardName = cardObj.optString("name", "");
-                    long dueDate = cardObj.optLong("dueDate", getDefaultDueDate());
-                    if (isValidDate(dueDate)) {
-                        addCardEntry(cardName, dueDate, widgetId);
-                    }
-                }
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "Error parsing cards data", e);
-            addDefaultCard(widgetId);
-        }
-    }
+
 
     private boolean isValidDate(long dateMillis) {
         long currentTime = System.currentTimeMillis();
@@ -172,7 +159,7 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
     }
 
     private void addDefaultCard(int widgetId) {
-        addCardEntry("", getDefaultDueDate(), widgetId);
+        addCardEntry(new Card("", getDefaultDueDate(), widgetId));
     }
 
     private void addNewCardEntry() {
@@ -186,40 +173,39 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
                 showToast(getString(R.string.max_cards_allowed, MAX_CARDS) + " for the primary widget.");
                 return;
             }
-            addCardEntry("", getDefaultDueDate(), targetWidgetId);
+            addCardEntry(new Card("", getDefaultDueDate(), targetWidgetId));
 
         } else {
             if (cardEntries.size() >= MAX_CARDS) {
                 showToast(getString(R.string.max_cards_allowed, MAX_CARDS));
                 return;
             }
-            addCardEntry("", getDefaultDueDate(), appWidgetId);
+            addCardEntry(new Card("", getDefaultDueDate(), appWidgetId));
         }
     }
 
     private int getCardCountForWidget(int widgetId) {
         int count = 0;
         for (CardEntry entry : cardEntries) {
-            if (entry.widgetId == widgetId) {
+            if (entry.card.getWidgetId() == widgetId) {
                 count++;
             }
         }
         return count;
     }
 
-    private void addCardEntry(String cardName, long dueDate, int widgetId) {
+    private void addCardEntry(Card card) {
         View cardView = LayoutInflater.from(this).inflate(R.layout.card_entry_item, cardsContainer, false);
         TextInputEditText cardNameEdit = cardView.findViewById(R.id.card_name_edit);
         Button dueDateButton = cardView.findViewById(R.id.due_date_button);
         ImageButton removeButton = cardView.findViewById(R.id.remove_card_button);
+        MaterialSwitch alarmSwitch = cardView.findViewById(R.id.alarm_switch);
 
-        Calendar selectedDate = Calendar.getInstance();
-        selectedDate.setTimeInMillis(dueDate);
-
-        CardEntry cardEntry = new CardEntry(cardView, cardNameEdit, dueDateButton, selectedDate, widgetId);
+        CardEntry cardEntry = new CardEntry(cardView, cardNameEdit, dueDateButton, alarmSwitch, card);
         cardEntries.add(cardEntry);
 
-        cardNameEdit.setText(cardName);
+        cardNameEdit.setText(card.getName());
+        alarmSwitch.setChecked(card.isAlarmEnabled());
         updateDateButton(cardEntry);
 
         dueDateButton.setOnClickListener(v -> {
@@ -232,7 +218,7 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
     }
 
     private void removeCardEntry(CardEntry cardEntry) {
-        int countForWidget = getCardCountForWidget(cardEntry.widgetId);
+        int countForWidget = getCardCountForWidget(cardEntry.card.getWidgetId());
         if (countForWidget <= MIN_CARDS) {
             showToast(getString(R.string.at_least_one_card));
             return;
@@ -246,22 +232,27 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
     private void updateRemoveButtonsVisibility() {
         for (CardEntry entry : cardEntries) {
             ImageButton removeButton = entry.cardView.findViewById(R.id.remove_card_button);
-            int count = getCardCountForWidget(entry.widgetId);
+            int count = getCardCountForWidget(entry.card.getWidgetId());
             removeButton.setVisibility(count > MIN_CARDS ? View.VISIBLE : View.GONE);
         }
     }
 
     private void showDatePicker(CardEntry cardEntry) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(cardEntry.card.getDueDate());
+        
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-            cardEntry.selectedDate.set(year, month, dayOfMonth);
+            Calendar newCal = Calendar.getInstance();
+            newCal.set(year, month, dayOfMonth);
+            cardEntry.card.setDueDate(newCal.getTimeInMillis());
             updateDateButton(cardEntry);
-        }, cardEntry.selectedDate.get(Calendar.YEAR), cardEntry.selectedDate.get(Calendar.MONTH), cardEntry.selectedDate.get(Calendar.DAY_OF_MONTH));
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
         datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
         datePickerDialog.show();
     }
 
     private void updateDateButton(CardEntry cardEntry) {
-        String dateStr = android.text.format.DateFormat.getDateFormat(this).format(cardEntry.selectedDate.getTime());
+        String dateStr = android.text.format.DateFormat.getDateFormat(this).format(cardEntry.card.getDueDate());
         cardEntry.dueDateButton.setText(getString(R.string.due_date_button_text, dateStr));
     }
 
@@ -288,7 +279,7 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
             for (int widgetId : widgetIdsToUpdate) {
                 List<CardEntry> entriesForWidget = new ArrayList<>();
                 for (CardEntry entry : cardEntries) {
-                    if (entry.widgetId == widgetId) {
+                    if (entry.card.getWidgetId() == widgetId) {
                         entriesForWidget.add(entry);
                     }
                 }
@@ -341,31 +332,34 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
     }
 
     private boolean saveCardsForWidget(int widgetId, List<CardEntry> entries) {
-        JSONArray cardsArray = new JSONArray();
+        List<Card> cardsToSave = new ArrayList<>();
+        
         for (CardEntry entry : entries) {
             String cardName = entry.cardNameEdit.getText().toString().trim();
             if (TextUtils.isEmpty(cardName)) {
                 cardName = getString(R.string.credit_card);
             }
+            
+            // Update card object
+            entry.card.setName(cardName);
+            entry.card.setAlarmEnabled(entry.alarmSwitch.isChecked());
+            // Due date is already updated via date picker
+            // entry.card.setDueDate(...) called in showDatePicker
+            
+            cardsToSave.add(entry.card);
+        }
 
-            try {
-                JSONObject cardObj = new JSONObject();
-                cardObj.put("name", cardName);
-                cardObj.put("dueDate", entry.selectedDate.getTimeInMillis());
-                cardsArray.put(cardObj);
-            } catch (JSONException e) {
-                Log.w(TAG, "Error creating card JSON", e);
+        repository.saveCards(widgetId, cardsToSave);
+        
+        // Schedule Alarms
+        for (Card card : cardsToSave) {
+            AlarmScheduler.cancelAlarms(this, card);
+            if (card.isAlarmEnabled() && !card.isPaid()) {
+                AlarmScheduler.scheduleAlarms(this, card);
             }
         }
 
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME + widgetId, Context.MODE_PRIVATE);
-        boolean success = prefs.edit().putString(CARDS_DATA_KEY, cardsArray.toString()).commit();
-
-        if (success) {
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-            CreditCardWidgetProvider.updateAppWidget(this, appWidgetManager, widgetId);
-        }
-        return success;
+        return true;
     }
 
     private void finishAndSuccess() {
@@ -403,15 +397,15 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
         final View cardView;
         final TextInputEditText cardNameEdit;
         final Button dueDateButton;
-        final Calendar selectedDate;
-        final int widgetId;
+        final MaterialSwitch alarmSwitch;
+        final Card card;
 
-        CardEntry(View cardView, TextInputEditText cardNameEdit, Button dueDateButton, Calendar selectedDate, int widgetId) {
+        CardEntry(View cardView, TextInputEditText cardNameEdit, Button dueDateButton, MaterialSwitch alarmSwitch, Card card) {
             this.cardView = cardView;
             this.cardNameEdit = cardNameEdit;
             this.dueDateButton = dueDateButton;
-            this.selectedDate = selectedDate;
-            this.widgetId = widgetId;
+            this.alarmSwitch = alarmSwitch;
+            this.card = card;
         }
     }
 }
