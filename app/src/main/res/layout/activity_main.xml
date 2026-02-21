@@ -1,84 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="?attr/colorSurface"
+    tools:context=".MainActivity">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Dashboard" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="@dimen/spacing_lg"
-        android:gravity="center">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/info_card"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="12dp"
-            app:strokeWidth="0dp"
-            android:elevation="12dp"
-            app:cardBackgroundColor="@color/surface">
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_lg">
 
-            <LinearLayout
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_xl"
-                android:gravity="center">
+                app:cardCornerRadius="@dimen/corner_radius_lg"
+                app:cardElevation="0dp"
+                style="@style/Widget.Material3.CardView.Filled">
 
-                <ImageView
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:src="@mipmap/ic_launcher"
-                    android:layout_marginBottom="@dimen/spacing_lg"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/app_name"
-                    android:textAppearance="@style/TextAppearance.Material3.HeadlineLarge"
-                    android:textColor="@color/on_surface"
-                    android:layout_marginBottom="@dimen/spacing_md"
-                    android:fontFamily="sans-serif-black"/>
-
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/track_your_credit_card_due_dates"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-                    android:textColor="@color/on_surface_variant"
-                    android:gravity="center"
-                    android:lineSpacingMultiplier="1.3"
-                    android:layout_marginBottom="@dimen/spacing_xl" />
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_xl"
+                    android:gravity="center">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/add_widget_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:text="@string/add_widget_to_home_screen"
-                    android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
-                    app:icon="@drawable/ic_add_24"
-                    app:iconGravity="start"
-                    app:cornerRadius="20dp"
-                    style="@style/Widget.Material3.Button" />
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@mipmap/ic_launcher"
+                        android:layout_marginBottom="@dimen/spacing_lg"/>
 
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_name"
+                        android:textAppearance="@style/TextAppearance.Material3.HeadlineLarge"
+                        android:textColor="@color/on_surface"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        android:fontFamily="sans-serif-black"/>
 
-        </com.google.android.material.card.MaterialCardView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/track_your_credit_card_due_dates"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:textColor="@color/on_surface_variant"
+                        android:gravity="center"
+                        android:lineSpacingMultiplier="1.3"
+                        android:layout_marginBottom="@dimen/spacing_xl" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/add_widget_instructions"
-            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-            android:textColor="@color/on_surface_variant"
-            android:gravity="center"
-            android:layout_marginTop="@dimen/spacing_lg"
-            android:lineSpacingMultiplier="1.2" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/add_widget_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:text="@string/add_widget_to_home_screen"
+                        android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                        app:icon="@drawable/ic_add_24"
+                        app:iconGravity="start"
+                        app:cornerRadius="20dp"
+                        style="@style/Widget.Material3.Button" />
 
-    </LinearLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/alarm_settings_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:text="Alarm Settings"
+                        android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                        app:icon="@drawable/ic_time_24"
+                        app:iconGravity="start"
+                        app:cornerRadius="20dp"
+                        style="@style/Widget.Material3.Button.TonalButton" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/manage_cards_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:text="@string/manage_cards"
+                        android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                        app:icon="@android:drawable/ic_menu_edit"
+                        app:iconGravity="start"
+                        app:cornerRadius="20dp"
+                        style="@style/Widget.Material3.Button.TonalButton" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/add_widget_instructions"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                android:textColor="@color/on_surface_variant"
+                android:gravity="center"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:lineSpacingMultiplier="1.2" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -4,7 +4,15 @@ import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "cards")
 public class Card {
+    @PrimaryKey
+    @NonNull
     private String id;
     private String name;
     private long dueDate;
@@ -21,6 +29,7 @@ public class Card {
         this.isPaid = isPaid;
     }
 
+    @Ignore
     public Card(String name, long dueDate, int widgetId) {
         this(UUID.randomUUID().toString(), name, dueDate, widgetId, false, false);
     }
@@ -32,6 +41,8 @@ public class Card {
     public boolean isAlarmEnabled() { return isAlarmEnabled; }
     public boolean isPaid() { return isPaid; }
 
+    public void setId(@NonNull String id) { this.id = id; }
+    public void setWidgetId(int widgetId) { this.widgetId = widgetId; }
     public void setName(String name) { this.name = name; }
     public void setDueDate(long dueDate) { this.dueDate = dueDate; }
     public void setAlarmEnabled(boolean alarmEnabled) { isAlarmEnabled = alarmEnabled; }

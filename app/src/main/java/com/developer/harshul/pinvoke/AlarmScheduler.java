@@ -1,5 +1,6 @@
 package com.developer.harshul.pinvoke;
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -8,103 +9,127 @@ import android.os.Build;
 import android.util.Log;
 
 import java.util.Calendar;
+import java.util.List;
 
 public class AlarmScheduler {
 
     private static final String TAG = "AlarmScheduler";
     public static final String EXTRA_CARD_ID = "card_id";
+    public static final String EXTRA_ALARM_ID = "alarm_id";
 
-    // Request codes: Base is hash of card ID. 
-    // Offsets: 0 for 11:00, 1 for 13:45, 2 for 20:00.
-    
     public static void scheduleAlarms(Context context, Card card) {
         if (!card.isAlarmEnabled() || card.isPaid()) {
             return;
         }
 
-        long dueDate = card.getDueDate();
-        scheduleAlarm(context, card, dueDate, 11, 0, 0); // 11:00 AM
-        scheduleAlarm(context, card, dueDate, 14, 37, 1); // 1:45 PM
-        scheduleAlarm(context, card, dueDate, 14, 39, 2); // 8:00 PM
+        GlobalAlarmRepository repo = new GlobalAlarmRepository(context);
+        List<GlobalAlarmConfig> alarms = repo.getAlarms();
+
+        for (GlobalAlarmConfig alarm : alarms) {
+            if (alarm.isEnabled()) {
+                scheduleSingleAlarm(context, card, alarm);
+            }
+        }
     }
 
-    private static void scheduleAlarm(Context context, Card card, long dueDate, int hour, int minute, int requestCodeOffset) {
+    @SuppressLint("MissingPermission")
+    private static void scheduleSingleAlarm(Context context, Card card, GlobalAlarmConfig alarmConfig) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager == null) return;
 
-        // Check for exact alarm permission on Android 12+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!alarmManager.canScheduleExactAlarms()) {
-                Log.w(TAG, "Cannot schedule exact alarms: permission denied");
-                // In a real app, we should prompt user to grant permission. 
-                // For now, we proceed, as standard behavior might allow basic scheduling or we fallback.
-                // But generally we should have asked for permission in UI.
-                return; 
-            }
-        }
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(dueDate);
-        calendar.set(Calendar.HOUR_OF_DAY, hour);
-        calendar.set(Calendar.MINUTE, minute);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-
-        long triggerTime = calendar.getTimeInMillis();
-
-        // If time is in the past, don't schedule (or schedule for next month? No, requirement says 'schedule only future alarms')
-        if (triggerTime < System.currentTimeMillis()) {
-            Log.d(TAG, "Alarm time passed for " + hour + ":" + minute + ", skipping.");
-            return;
-        }
+        long triggerTime = calculateNextTriggerTime(card.getDueDate(), alarmConfig.getHourOfDay(), alarmConfig.getMinute());
 
         Intent intent = new Intent(context, AlarmReceiver.class);
         intent.putExtra(EXTRA_CARD_ID, card.getId());
-        
-        int requestCode = getRequestCode(card.getId(), requestCodeOffset);
-        
+        intent.putExtra(EXTRA_ALARM_ID, alarmConfig.getId());
+
+        int requestCode = getRequestCode(card.getId(), alarmConfig.getId());
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context, 
-                requestCode, 
-                intent, 
+                context,
+                requestCode,
+                intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        // API 23+ (Marshmallow) Doze mode handling
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+        // Using setAlarmClock for maximum reliability (bypasses Doze, shows icon)
+        Intent uiIntent = new Intent(context, MainActivity.class);
+        PendingIntent piUi = PendingIntent.getActivity(context, 0, uiIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        AlarmManager.AlarmClockInfo info = new AlarmManager.AlarmClockInfo(triggerTime, piUi);
+        alarmManager.setAlarmClock(info, pendingIntent);
+
+        Log.d(TAG, "Scheduled alarm ID " + alarmConfig.getId() + " for " + card.getName() + " at " + triggerTime);
+    }
+
+    private static long calculateNextTriggerTime(long dueDateMillis, int targetHour, int targetMinute) {
+        Calendar now = Calendar.getInstance();
         
-        Log.d(TAG, "Scheduled alarm for " + card.getName() + " at " + calendar.getTime());
+        Calendar due = Calendar.getInstance();
+        due.setTimeInMillis(dueDateMillis);
+        
+        // Let's create a target time for TODAY
+        Calendar targetToday = Calendar.getInstance();
+        targetToday.set(Calendar.HOUR_OF_DAY, targetHour);
+        targetToday.set(Calendar.MINUTE, targetMinute);
+        targetToday.set(Calendar.SECOND, 0);
+        targetToday.set(Calendar.MILLISECOND, 0);
+
+        // If today is strictly BEFORE the due date's calendar day, the next valid cycle starts on the due date.
+        // A simple way to check if today is before due date is to compare start of days.
+        Calendar startOfToday = Calendar.getInstance();
+        startOfToday.set(Calendar.HOUR_OF_DAY, 0);
+        startOfToday.set(Calendar.MINUTE, 0);
+        startOfToday.set(Calendar.SECOND, 0);
+        startOfToday.set(Calendar.MILLISECOND, 0);
+        
+        Calendar startOfDue = Calendar.getInstance();
+        startOfDue.setTimeInMillis(dueDateMillis);
+        startOfDue.set(Calendar.HOUR_OF_DAY, 0);
+        startOfDue.set(Calendar.MINUTE, 0);
+        startOfDue.set(Calendar.SECOND, 0);
+        startOfDue.set(Calendar.MILLISECOND, 0);
+
+        if (startOfToday.getTimeInMillis() < startOfDue.getTimeInMillis()) {
+            // We are before the due date. The next occurrence is on the due date.
+            Calendar targetDue = Calendar.getInstance();
+            targetDue.setTimeInMillis(dueDateMillis);
+            targetDue.set(Calendar.HOUR_OF_DAY, targetHour);
+            targetDue.set(Calendar.MINUTE, targetMinute);
+            targetDue.set(Calendar.SECOND, 0);
+            targetDue.set(Calendar.MILLISECOND, 0);
+            return targetDue.getTimeInMillis();
+        } else {
+            // We are on or past the due date.
+            if (targetToday.getTimeInMillis() > now.getTimeInMillis()) {
+                // The time is later today
+                return targetToday.getTimeInMillis();
+            } else {
+                // The time has passed today. Schedule for tomorrow.
+                targetToday.add(Calendar.DAY_OF_YEAR, 1);
+                return targetToday.getTimeInMillis();
+            }
+        }
     }
 
     public static void cancelAlarms(Context context, Card card) {
-        cancelAlarm(context, card, 0);
         cancelAlarm(context, card, 1);
         cancelAlarm(context, card, 2);
-    }
-    
-    public static void cancelRemainingAlarmsForDay(Context context, Card card) {
-        // Logic: Cancel all provided. Since we only schedule for "today" (due date), this is effectively same as cancelAlarms.
-        // If we supported recurring alarms, we'd need to be careful. 
-        // But for now, "cancel remaining alarms for the day" effectively means cancel all pending intents for this card's current cycle.
-        cancelAlarms(context, card);
+        cancelAlarm(context, card, 3);
     }
 
-    private static void cancelAlarm(Context context, Card card, int requestCodeOffset) {
+    private static void cancelAlarm(Context context, Card card, int alarmId) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager == null) return;
 
         Intent intent = new Intent(context, AlarmReceiver.class);
-        // Extras not strictly needed for matching execution, but intent filter matching requires strict validity.
-        // Actually PendingIntent matching is based on Intent.filterEquals() + requestCode. 
-        // Extras are NOT considered in filterEquals. 
-        // So just same component/action is enough if data/categories match (none here).
-        
-        int requestCode = getRequestCode(card.getId(), requestCodeOffset);
-        
+
+        int requestCode = getRequestCode(card.getId(), alarmId);
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context, 
-                requestCode, 
-                intent, 
+                context,
+                requestCode,
+                intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_NO_CREATE
         );
 
@@ -114,10 +139,8 @@ public class AlarmScheduler {
             Log.d(TAG, "Cancelled alarm request code: " + requestCode);
         }
     }
-    
-    private static int getRequestCode(String cardId, int offset) {
-        // Simple hashcode combination. 
-        // Potential collision if we have many cards, but unlikely for < 10 cards.
-        return cardId.hashCode() + offset;
+
+    private static int getRequestCode(String cardId, int alarmId) {
+        return cardId.hashCode() + alarmId;
     }
 }

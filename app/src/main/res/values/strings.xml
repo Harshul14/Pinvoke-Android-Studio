@@ -27,4 +27,5 @@
     <string name="long_press_on_home_screen_and_select_widgets">Long press on home screen and select \'Widgets\' to add the Credit Card Widget.</string>
     <string name="bill_due_message">Your %s bill is due today!</string>
     <string name="alarm_reminder_label">Set Bill Reminder</string>
+    <string name="manage_cards">Manage Cards</string>
 </resources>

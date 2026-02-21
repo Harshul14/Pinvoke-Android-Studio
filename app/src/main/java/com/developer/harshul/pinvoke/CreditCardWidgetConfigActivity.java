@@ -134,8 +134,8 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
         allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
 
         if (allWidgetIds.length == 0) {
-            showToast("No active widgets found.");
-            return;
+            // Even if no widgets are active, allow creating/viewing cards through a default ID
+            allWidgetIds = new int[] { 0 };
         }
 
         for (int id : allWidgetIds) {
@@ -207,6 +207,8 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
         cardNameEdit.setText(card.getName());
         alarmSwitch.setChecked(card.isAlarmEnabled());
         updateDateButton(cardEntry);
+
+
 
         dueDateButton.setOnClickListener(v -> {
             showDatePicker(cardEntry);

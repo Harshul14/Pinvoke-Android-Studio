@@ -39,11 +39,17 @@
             android:name=".CreditCardWidgetConfigActivity"
             android:theme="@style/Theme.Ccwidget.WidgetConfig"
             android:label="Configure Widget"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize">
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
+        </activity>
+        
+        <activity
+            android:name=".GlobalAlarmSettingsActivity"
+            android:label="Alarm Settings"
+            android:exported="false">
         </activity>
         
         <activity
@@ -60,20 +66,24 @@
         <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
             </intent-filter>
         </receiver>
 
         <activity 
             android:name=".AlarmActivity"
-            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:theme="@style/Theme.Ccwidget"
             android:launchMode="singleTask"
+            android:taskAffinity=""
             android:excludeFromRecents="true"
             android:showOnLockScreen="true"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:exported="false" />
 
-        <service android:name=".AlarmService" android:foregroundServiceType="mediaPlayback|shortService" />
+        <service android:name=".AlarmService" android:exported="false" android:foregroundServiceType="mediaPlayback|shortService" />
 
     </application>
 

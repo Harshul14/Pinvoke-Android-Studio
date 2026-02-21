@@ -5,7 +5,6 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,6 +12,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 import androidx.core.content.ContextCompat;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -23,9 +27,6 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class CreditCardWidgetProvider extends AppWidgetProvider {
 
@@ -74,19 +75,28 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
         try {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_credit_card);
 
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME + appWidgetId, Context.MODE_PRIVATE);
-            String cardsDataJson = prefs.getString(CARDS_DATA_KEY, "");
+            CardRepository repository = new CardRepository(context);
+            List<Card> cards = repository.getCardsForWidget(appWidgetId);
 
-            ParseResult result = parseCardData(cardsDataJson);
-            List<CardData> cardDataList = result.cardData;
+            List<CardData> cardDataList = new ArrayList<>();
+            for (Card card : cards) {
+                long originalDueDate = card.getDueDate();
+                long updatedDueDate = updateOverdueDateToNextMonth(originalDueDate);
 
-            if (result.dataUpdated) {
-                saveUpdatedData(context, appWidgetId, result.updatedData);
+                if (updatedDueDate != originalDueDate) {
+                    card.setDueDate(updatedDueDate);
+                    card.setPaid(false); // Reset paid status for new month
+                    repository.updateCard(card);
+                }
+                
+                cardDataList.add(new CardData(card.getName(), card.getDueDate()));
             }
 
-            Intent intent = new Intent(context, CreditCardWidgetConfigActivity.class);
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-            intent.setAction("com.developer.harshul.pinvoke.CONFIGURE." + appWidgetId);
+            Collections.sort(cardDataList, (c1, c2) -> Long.compare(c1.dueDate, c2.dueDate));
+
+            Intent intent = new Intent(context, MainActivity.class);
+            intent.setAction(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
             PendingIntent pendingIntent = PendingIntent.getActivity(context, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
             if (cardDataList.isEmpty()) {
@@ -251,9 +261,9 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
+        CardRepository repository = new CardRepository(context);
         for (int appWidgetId : appWidgetIds) {
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME + appWidgetId, Context.MODE_PRIVATE);
-            prefs.edit().clear().apply();
+            repository.deleteCardsForWidget(appWidgetId);
         }
         super.onDeleted(context, appWidgetIds);
     }
@@ -297,21 +307,14 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
         return dueDate;
     }
 
-    private static void saveUpdatedData(Context context, int appWidgetId, JSONArray updatedData) {
-        if (updatedData == null) return;
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME + appWidgetId, Context.MODE_PRIVATE);
-        prefs.edit().putString(CARDS_DATA_KEY, updatedData.toString()).apply();
-        Log.d(TAG, "Updated overdue dates for widget " + appWidgetId);
-    }
-
     private static class ParseResult {
-        final List<CardData> cardData;
-        final JSONArray updatedData;
+        final List<CardData> cardDataList;
+        final JSONArray updatedCardsJson;
         final boolean dataUpdated;
-        
-        ParseResult(List<CardData> cardData, JSONArray updatedData, boolean dataUpdated) {
-            this.cardData = cardData;
-            this.updatedData = updatedData;
+
+        ParseResult(List<CardData> cardDataList, JSONArray updatedCardsJson, boolean dataUpdated) {
+            this.cardDataList = cardDataList != null ? cardDataList : Collections.emptyList();
+            this.updatedCardsJson = updatedCardsJson;
             this.dataUpdated = dataUpdated;
         }
     }

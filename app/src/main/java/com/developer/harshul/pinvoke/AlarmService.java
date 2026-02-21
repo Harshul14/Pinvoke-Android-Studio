@@ -28,6 +28,7 @@ public class AlarmService extends Service {
     
     public static final String EXTRA_CARD_ID = "card_id";
     public static final String EXTRA_CARD_NAME = "card_name";
+    public static final String EXTRA_RINGTONE_URI = "ringtone_uri";
 
     private MediaPlayer mediaPlayer;
     private Vibrator vibrator;
@@ -47,19 +48,12 @@ public class AlarmService extends Service {
 
         String cardId = intent.getStringExtra(EXTRA_CARD_ID);
         String cardName = intent.getStringExtra(EXTRA_CARD_NAME);
+        String ringtoneUriString = intent.getStringExtra(EXTRA_RINGTONE_URI);
 
         startForeground(1, buildNotification(cardId, cardName));
-        startAlarm();
+        startAlarm(ringtoneUriString);
         
-        // Explicitly start the alarm activity to ensure it shows
-        Intent activityIntent = new Intent(this, AlarmActivity.class);
-        activityIntent.putExtra(AlarmActivity.EXTRA_CARD_ID, cardId);
-        activityIntent.putExtra(AlarmActivity.EXTRA_CARD_NAME, cardName);
-        activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | 
-                               Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                               Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(activityIntent);
-        Log.d(TAG, "Starting AlarmActivity");
+        // Explicitly removed starting the activity to ensure it just rings as a notification
 
         return START_STICKY;
     }
@@ -102,22 +96,38 @@ public class AlarmService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_MAX) // MAX priority for heads-up
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // Show on lock screen
-                .setFullScreenIntent(fullScreenPendingIntent, true)
+                .setContentIntent(fullScreenPendingIntent)
                 .setAutoCancel(false)
                 .setOngoing(true);
                 
         return builder.build();
     }
 
-    private void startAlarm() {
+    private void startAlarm(String customRingtoneUri) {
         try {
-            Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+            Uri alarmUri = null;
+            if (customRingtoneUri != null) {
+                alarmUri = Uri.parse(customRingtoneUri);
+            }
+            
+            if (alarmUri == null) {
+                alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+            }
             if (alarmUri == null) {
                 alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             }
 
             mediaPlayer = new MediaPlayer();
-            mediaPlayer.setDataSource(this, alarmUri);
+            
+            try {
+                mediaPlayer.setDataSource(this, alarmUri);
+            } catch (Exception e) {
+                // Fallback if custom uri fails (e.g., file deleted)
+                Log.e(TAG, "Failed to set custom ringtone, falling back to default", e);
+                alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+                mediaPlayer.reset();
+                mediaPlayer.setDataSource(this, alarmUri);
+            }
             mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_ALARM)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)

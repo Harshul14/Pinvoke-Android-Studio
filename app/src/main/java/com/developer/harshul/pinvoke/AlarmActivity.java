@@ -8,8 +8,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 import android.widget.Button;
 import android.widget.TextView;
+import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 
 
@@ -32,10 +35,10 @@ public class AlarmActivity extends AppCompatActivity {
         String cardName = getIntent().getStringExtra(EXTRA_CARD_NAME);
 
         TextView cardNameText = findViewById(R.id.card_name_text);
-        if (cardName != null) {
+        if (cardName != null && !cardName.trim().isEmpty()) {
             cardNameText.setText(getString(R.string.bill_due_message, cardName));
         } else {
-            cardNameText.setText("Your credit card bill is due today.");
+            cardNameText.setText(getString(R.string.bill_due_message, "Credit Card"));
         }
 
         Button btnPaid = findViewById(R.id.btn_paid);
@@ -43,6 +46,23 @@ public class AlarmActivity extends AppCompatActivity {
 
         btnPaid.setOnClickListener(v -> onPaidClicked());
         btnWillPay.setOnClickListener(v -> onWillPayClicked());
+        
+        startPulseAnimation();
+    }
+
+    private void startPulseAnimation() {
+        View pulseBg = findViewById(R.id.pulse_bg);
+        if (pulseBg != null) {
+            ScaleAnimation scaleAnimation = new ScaleAnimation(
+                    1f, 1.5f, 1f, 1.5f,
+                    Animation.RELATIVE_TO_SELF, 0.5f,
+                    Animation.RELATIVE_TO_SELF, 0.5f
+            );
+            scaleAnimation.setDuration(1000);
+            scaleAnimation.setRepeatCount(Animation.INFINITE);
+            scaleAnimation.setRepeatMode(Animation.REVERSE);
+            pulseBg.startAnimation(scaleAnimation);
+        }
     }
 
 
@@ -82,19 +102,40 @@ public class AlarmActivity extends AppCompatActivity {
             CardRepository repository = new CardRepository(this);
             Card card = repository.getCardById(cardId);
             if (card != null) {
-                card.setPaid(true);
+                // Advance due date by 1 month instead of marking as paid
+                java.util.Calendar cal = java.util.Calendar.getInstance();
+                cal.setTimeInMillis(card.getDueDate());
+                cal.add(java.util.Calendar.MONTH, 1);
+                card.setDueDate(cal.getTimeInMillis());
+                
+                // Do not mark as paid so the next cycle works properly
+                card.setPaid(false); 
+                
                 repository.updateCard(card);
+                
+                // Reschedule for the new due date
                 AlarmScheduler.cancelAlarms(this, card);
-                Log.d(TAG, "Card marked as paid, alarms cancelled.");
+                if (card.isAlarmEnabled()) {
+                    AlarmScheduler.scheduleAlarms(this, card);
+                }
+                Log.d(TAG, "Card due date advanced by 1 month, alarms rescheduled.");
             }
         }
-        finish();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            finishAndRemoveTask();
+        } else {
+            finish();
+        }
     }
 
     private void onWillPayClicked() {
         stopAlarm();
         // Do nothing else, so next alarm rings at scheduled time.
-        finish();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            finishAndRemoveTask();
+        } else {
+            finish();
+        }
     }
 
     @Override
