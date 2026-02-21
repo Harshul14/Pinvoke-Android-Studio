@@ -14,6 +14,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         Log.d(TAG, "Alarm received");
 
         String cardId = intent.getStringExtra("card_id");
+        int alarmId = intent.getIntExtra(AlarmScheduler.EXTRA_ALARM_ID, -1);
         if (cardId == null) {
             Log.e(TAG, "No card ID provided in alarm intent");
             return;
@@ -42,6 +43,16 @@ public class AlarmReceiver extends BroadcastReceiver {
         serviceIntent.putExtra(AlarmService.EXTRA_CARD_ID, card.getId());
         serviceIntent.putExtra(AlarmService.EXTRA_CARD_NAME, card.getName());
         
+        if (alarmId != -1) {
+            GlobalAlarmRepository globalRepo = new GlobalAlarmRepository(context);
+            for (GlobalAlarmConfig config : globalRepo.getAlarms()) {
+                if (config.getId() == alarmId && config.getRingtoneUri() != null) {
+                    serviceIntent.putExtra(AlarmService.EXTRA_RINGTONE_URI, config.getRingtoneUri());
+                    break;
+                }
+            }
+        }
+        
         try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 context.startForegroundService(serviceIntent);
@@ -49,13 +60,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 context.startService(serviceIntent);
             }
         } catch (Exception e) {
-            Log.e(TAG, "Failed to start service, trying activity directly", e);
-            // Fallback: Try starting activity directly (might work if app is in foreground or exempted)
-            Intent activityIntent = new Intent(context, AlarmActivity.class);
-            activityIntent.putExtra(AlarmActivity.EXTRA_CARD_ID, card.getId());
-            activityIntent.putExtra(AlarmActivity.EXTRA_CARD_NAME, card.getName());
-            activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            context.startActivity(activityIntent);
+            Log.e(TAG, "Failed to start service", e);
         }
     }
 }

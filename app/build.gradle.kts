@@ -40,8 +40,9 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-//    implementation("com.google.android.material:material:1.11.0")
-//    implementation("androidx.core:core:ktx:1.13.0")
-//    implementation("androidx.appcompat:appcompat:1.7.1")
-//    implementation("androidx.coordinatorlayout:coordinatorlayout:1.3.0")
+
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.livedata)
 }

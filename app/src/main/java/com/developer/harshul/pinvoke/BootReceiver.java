@@ -13,8 +13,13 @@ public class BootReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-            Log.d(TAG, "Boot completed, rescheduling alarms...");
+        String action = intent.getAction();
+        if (Intent.ACTION_BOOT_COMPLETED.equals(action) || 
+            Intent.ACTION_MY_PACKAGE_REPLACED.equals(action) ||
+            Intent.ACTION_TIME_CHANGED.equals(action) || 
+            Intent.ACTION_TIMEZONE_CHANGED.equals(action)) {
+            
+            Log.d(TAG, "System event (" + action + ") received, rescheduling alarms...");
             
             CardRepository repository = new CardRepository(context);
             List<Card> allCards = repository.getAllCards();

@@ -57,6 +57,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/button_height"
         android:layout_margin="@dimen/spacing_md"
+        android:layout_gravity="bottom"
         android:text="@string/save_widget"
         android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
         app:cornerRadius="@dimen/corner_radius_md" />
