@@ -30,8 +30,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import com.developer.harshul.pinvoke.AppExecutors;
 import java.util.concurrent.TimeUnit;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
@@ -50,7 +50,6 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
     private Button addCardButton;
     private Button saveButton;
     private List<CardEntry> cardEntries;
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private CardRepository repository;
 
@@ -275,7 +274,7 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
             widgetIdsToUpdate.add(id);
         }
 
-        executorService.execute(() -> {
+        AppExecutors.getInstance().diskIO().execute(() -> {
             boolean allSuccess = true;
 
             for (int widgetId : widgetIdsToUpdate) {
@@ -316,7 +315,7 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
             return;
         }
 
-        executorService.execute(() -> {
+        AppExecutors.getInstance().diskIO().execute(() -> {
             boolean success = saveCardsForWidget(widgetId, entries);
             mainHandler.post(() -> {
                 if (success) {

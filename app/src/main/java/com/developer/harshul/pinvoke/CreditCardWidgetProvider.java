@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import com.developer.harshul.pinvoke.AppExecutors;
 import java.util.concurrent.TimeUnit;
 
 public class CreditCardWidgetProvider extends AppWidgetProvider {
@@ -33,11 +33,10 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
     private static final String TAG = "CreditCardWidget";
     private static final String PREFS_NAME = "CCWidgetPrefs";
     private static final String CARDS_DATA_KEY = "cards_data";
-    private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        executorService.execute(() -> {
+        AppExecutors.getInstance().diskIO().execute(() -> {
             for (int appWidgetId : appWidgetIds) {
                 try {
                     updateAppWidget(context, appWidgetManager, appWidgetId, null);
@@ -52,7 +51,7 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
-        executorService.execute(() -> {
+        AppExecutors.getInstance().diskIO().execute(() -> {
             try {
                 updateAppWidget(context, appWidgetManager, appWidgetId, newOptions);
             } catch (Exception e) {
