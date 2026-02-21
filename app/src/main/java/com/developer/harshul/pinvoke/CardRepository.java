@@ -5,6 +5,7 @@ import android.content.Context;
 
 import androidx.lifecycle.LiveData;
 
+import com.developer.harshul.pinvoke.AppExecutors;
 import com.developer.harshul.pinvoke.data.local.AppDatabase;
 import com.developer.harshul.pinvoke.data.local.CardDao;
 
@@ -39,7 +40,7 @@ public class CardRepository {
 
     public void saveCards(int widgetId, List<Card> cards) {
         // Run DB operation on background thread
-        AppDatabase.databaseWriteExecutor.execute(() -> {
+        AppExecutors.getInstance().diskIO().execute(() -> {
             cardDao.deleteCardsForWidget(widgetId);
             for (Card card : cards) {
                 card.setWidgetId(widgetId); // Ensure correct widget ID
@@ -53,7 +54,7 @@ public class CardRepository {
     }
     
     public void updateCard(Card updatedCard) {
-        AppDatabase.databaseWriteExecutor.execute(() -> cardDao.update(updatedCard));
+        AppExecutors.getInstance().diskIO().execute(() -> cardDao.update(updatedCard));
     }
 
     public Card getCardById(String cardId) {
@@ -61,6 +62,6 @@ public class CardRepository {
     }
 
     public void deleteCardsForWidget(int widgetId) {
-        AppDatabase.databaseWriteExecutor.execute(() -> cardDao.deleteCardsForWidget(widgetId));
+        AppExecutors.getInstance().diskIO().execute(() -> cardDao.deleteCardsForWidget(widgetId));
     }
 }

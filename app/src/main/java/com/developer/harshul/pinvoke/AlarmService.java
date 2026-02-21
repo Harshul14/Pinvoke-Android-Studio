@@ -104,21 +104,29 @@ public class AlarmService extends Service {
     }
 
     private void startAlarm(String customRingtoneUri) {
-        try {
-            Uri alarmUri = null;
-            if (customRingtoneUri != null) {
-                alarmUri = Uri.parse(customRingtoneUri);
-            }
-            
-            if (alarmUri == null) {
-                alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-            }
-            if (alarmUri == null) {
-                alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            }
+        Uri alarmUri = resolveValidAlarmUri(customRingtoneUri);
+        initAndPlayMediaPlayer(alarmUri);
+        startVibrator();
+    }
 
+    private Uri resolveValidAlarmUri(String customRingtoneUri) {
+        Uri alarmUri = null;
+        if (customRingtoneUri != null) {
+            alarmUri = Uri.parse(customRingtoneUri);
+        }
+        
+        if (alarmUri == null) {
+            alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        }
+        if (alarmUri == null) {
+            alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        }
+        return alarmUri;
+    }
+
+    private void initAndPlayMediaPlayer(Uri alarmUri) {
+        try {
             mediaPlayer = new MediaPlayer();
-            
             try {
                 mediaPlayer.setDataSource(this, alarmUri);
             } catch (Exception e) {
@@ -135,18 +143,20 @@ public class AlarmService extends Service {
             mediaPlayer.setLooping(true);
             mediaPlayer.prepare();
             mediaPlayer.start();
-
-            vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-            if (vibrator != null && vibrator.hasVibrator()) {
-                long[] pattern = {0, 1000, 1000};
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator.vibrate(VibrationEffect.createWaveform(pattern, 0));
-                } else {
-                    vibrator.vibrate(pattern, 0);
-                }
-            }
         } catch (IOException e) {
             Log.e(TAG, "Error starting alarm sound", e);
+        }
+    }
+
+    private void startVibrator() {
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null && vibrator.hasVibrator()) {
+            long[] pattern = {0, 1000, 1000};
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createWaveform(pattern, 0));
+            } else {
+                vibrator.vibrate(pattern, 0);
+            }
         }
     }
 
