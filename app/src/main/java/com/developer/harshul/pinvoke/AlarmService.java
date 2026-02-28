@@ -25,7 +25,7 @@ import java.io.IOException;
 public class AlarmService extends Service {
     private static final String TAG = "AlarmService";
     private static final String CHANNEL_ID = "bill_due_alarm_channel";
-    
+
     public static final String EXTRA_CARD_ID = "card_id";
     public static final String EXTRA_CARD_NAME = "card_name";
     public static final String EXTRA_RINGTONE_URI = "ringtone_uri";
@@ -52,7 +52,7 @@ public class AlarmService extends Service {
 
         startForeground(1, buildNotification(cardId, cardName));
         startAlarm(ringtoneUriString);
-        
+
         // Explicitly removed starting the activity to ensure it just rings as a notification
 
         return START_STICKY;
@@ -60,15 +60,11 @@ public class AlarmService extends Service {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Bill Due Alarms",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Bill Due Alarms", NotificationManager.IMPORTANCE_HIGH);
             channel.setDescription("Alarms for credit card bill due dates");
             channel.setSound(null, null); // We play sound manually
             channel.enableVibration(true);
-            
+
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {
                 manager.createNotificationChannel(channel);
@@ -81,25 +77,14 @@ public class AlarmService extends Service {
         fullScreenIntent.putExtra(AlarmActivity.EXTRA_CARD_ID, cardId);
         fullScreenIntent.putExtra(AlarmActivity.EXTRA_CARD_NAME, cardName);
         fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        
-        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(
-                this, 
-                0, 
-                fullScreenIntent, 
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher) // Ensure this exists
-                .setContentTitle("Bill Due")
-                .setContentText(getString(R.string.bill_due_message, cardName != null ? cardName : "Credit Card"))
-                .setPriority(NotificationCompat.PRIORITY_MAX) // MAX priority for heads-up
-                .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // Show on lock screen
-                .setContentIntent(fullScreenPendingIntent)
-                .setAutoCancel(false)
-                .setOngoing(true);
-                
+        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0, fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID).setSmallIcon(R.mipmap.ic_launcher) // Ensure this exists
+                .setContentTitle("Bill Due").setContentText(getString(R.string.bill_due_message, cardName != null ? cardName : "Credit Card")).setPriority(NotificationCompat.PRIORITY_MAX) // MAX priority for heads-up
+                .setCategory(NotificationCompat.CATEGORY_ALARM).setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // Show on lock screen
+                .setContentIntent(fullScreenPendingIntent).setAutoCancel(false).setOngoing(true);
+
         return builder.build();
     }
 
@@ -114,7 +99,7 @@ public class AlarmService extends Service {
         if (customRingtoneUri != null) {
             alarmUri = Uri.parse(customRingtoneUri);
         }
-        
+
         if (alarmUri == null) {
             alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         }
@@ -136,10 +121,7 @@ public class AlarmService extends Service {
                 mediaPlayer.reset();
                 mediaPlayer.setDataSource(this, alarmUri);
             }
-            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build());
+            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build());
             mediaPlayer.setLooping(true);
             mediaPlayer.prepare();
             mediaPlayer.start();

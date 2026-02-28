@@ -32,7 +32,9 @@ import java.util.Calendar;
 import java.util.List;
 
 import com.developer.harshul.pinvoke.AppExecutors;
+
 import java.util.concurrent.TimeUnit;
+
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 public class CreditCardWidgetConfigActivity extends AppCompatActivity {
@@ -134,7 +136,7 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
 
         if (allWidgetIds.length == 0) {
             // Even if no widgets are active, allow creating/viewing cards through a default ID
-            allWidgetIds = new int[] { 0 };
+            allWidgetIds = new int[]{0};
         }
 
         for (int id : allWidgetIds) {
@@ -148,7 +150,6 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
             }
         }
     }
-
 
 
     private boolean isValidDate(long dateMillis) {
@@ -208,7 +209,6 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
         updateDateButton(cardEntry);
 
 
-
         dueDateButton.setOnClickListener(v -> {
             showDatePicker(cardEntry);
         });
@@ -241,7 +241,7 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
     private void showDatePicker(CardEntry cardEntry) {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(cardEntry.card.getDueDate());
-        
+
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
             Calendar newCal = Calendar.getInstance();
             newCal.set(year, month, dayOfMonth);
@@ -334,24 +334,24 @@ public class CreditCardWidgetConfigActivity extends AppCompatActivity {
 
     private boolean saveCardsForWidget(int widgetId, List<CardEntry> entries) {
         List<Card> cardsToSave = new ArrayList<>();
-        
+
         for (CardEntry entry : entries) {
             String cardName = entry.cardNameEdit.getText().toString().trim();
             if (TextUtils.isEmpty(cardName)) {
                 cardName = getString(R.string.credit_card);
             }
-            
+
             // Update card object
             entry.card.setName(cardName);
             entry.card.setAlarmEnabled(entry.alarmSwitch.isChecked());
             // Due date is already updated via date picker
             // entry.card.setDueDate(...) called in showDatePicker
-            
+
             cardsToSave.add(entry.card);
         }
 
         repository.saveCards(widgetId, cardsToSave);
-        
+
         // Schedule Alarms
         for (Card card : cardsToSave) {
             AlarmScheduler.cancelAlarms(this, card);

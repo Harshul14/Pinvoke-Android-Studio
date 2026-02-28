@@ -45,12 +45,7 @@ public class AlarmScheduler {
 
         int requestCode = getRequestCode(card.getId(), alarmConfig.getId());
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context,
-                requestCode,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         // Using setAlarmClock for maximum reliability (bypasses Doze, shows icon)
         Intent uiIntent = new Intent(context, MainActivity.class);
@@ -64,10 +59,10 @@ public class AlarmScheduler {
 
     private static long calculateNextTriggerTime(long dueDateMillis, int targetHour, int targetMinute) {
         Calendar now = Calendar.getInstance();
-        
+
         Calendar due = Calendar.getInstance();
         due.setTimeInMillis(dueDateMillis);
-        
+
         // Let's create a target time for TODAY
         Calendar targetToday = Calendar.getInstance();
         targetToday.set(Calendar.HOUR_OF_DAY, targetHour);
@@ -82,7 +77,7 @@ public class AlarmScheduler {
         startOfToday.set(Calendar.MINUTE, 0);
         startOfToday.set(Calendar.SECOND, 0);
         startOfToday.set(Calendar.MILLISECOND, 0);
-        
+
         Calendar startOfDue = Calendar.getInstance();
         startOfDue.setTimeInMillis(dueDateMillis);
         startOfDue.set(Calendar.HOUR_OF_DAY, 0);
@@ -126,12 +121,7 @@ public class AlarmScheduler {
 
         int requestCode = getRequestCode(card.getId(), alarmId);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context,
-                requestCode,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_NO_CREATE
-        );
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_NO_CREATE);
 
         if (pendingIntent != null) {
             alarmManager.cancel(pendingIntent);

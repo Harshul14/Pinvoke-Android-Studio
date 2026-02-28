@@ -16,9 +16,9 @@ public class AlarmViewModel extends AndroidViewModel {
         super(application);
         repository = new GlobalAlarmRepository(application);
         alarmsLiveData = repository.getAlarmsLiveData();
-        
+
         // Ensure default alarms are populated if empty
-        repository.getAlarms(); 
+        repository.getAlarms();
     }
 
     public LiveData<List<GlobalAlarmConfig>> getAlarmsLiveData() {

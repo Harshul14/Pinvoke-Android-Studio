@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Simplified background for small widgets -->
+<?xml version="1.0" encoding="utf-8"?><!-- Simplified background for small widgets -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
@@ -11,8 +10,8 @@
 
     <!-- Subtle gradient overlay -->
     <gradient
-        android:startColor="#05FFFFFF"
+        android:angle="135"
         android:endColor="#02FFFFFF"
-        android:angle="135" />
+        android:startColor="#05FFFFFF" />
 
 </shape>

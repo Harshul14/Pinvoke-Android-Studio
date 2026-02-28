@@ -46,13 +46,13 @@ public class CardRepository {
                 card.setWidgetId(widgetId); // Ensure correct widget ID
                 cardDao.insert(card);
             }
-            
+
             // Notify widget helper to update widget view
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             CreditCardWidgetProvider.updateAppWidget(context, appWidgetManager, widgetId);
         });
     }
-    
+
     public void updateCard(Card updatedCard) {
         AppExecutors.getInstance().diskIO().execute(() -> cardDao.update(updatedCard));
     }

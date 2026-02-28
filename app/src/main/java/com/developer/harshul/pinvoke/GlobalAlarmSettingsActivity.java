@@ -37,22 +37,19 @@ public class GlobalAlarmSettingsActivity extends AppCompatActivity {
 
     private int currentEditingAlarmIndex = -1;
 
-    private final ActivityResultLauncher<Intent> ringtonePickerLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                    Uri uri = result.getData().getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
-                    if (currentEditingAlarmIndex != -1 && currentEditingAlarmIndex < alarms.size()) {
-                        String uriString = uri != null ? uri.toString() : null;
-                        alarms.get(currentEditingAlarmIndex).setRingtoneUri(uriString);
-                        viewModel.saveAlarms(alarms);
-                        
-                        // Reschedule alarms since config changed
-                        rescheduleAllAlarms();
-                    }
-                }
+    private final ActivityResultLauncher<Intent> ringtonePickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+            Uri uri = result.getData().getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+            if (currentEditingAlarmIndex != -1 && currentEditingAlarmIndex < alarms.size()) {
+                String uriString = uri != null ? uri.toString() : null;
+                alarms.get(currentEditingAlarmIndex).setRingtoneUri(uriString);
+                viewModel.saveAlarms(alarms);
+
+                // Reschedule alarms since config changed
+                rescheduleAllAlarms();
             }
-    );
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,22 +133,20 @@ public class GlobalAlarmSettingsActivity extends AppCompatActivity {
     }
 
     private void showTimePicker(int index, GlobalAlarmConfig alarm) {
-        TimePickerDialog timePickerDialog = new TimePickerDialog(this,
-                (view, hourOfDay, minute) -> {
-                    // check duplicates
-                    for(int i = 0; i < alarms.size(); i++) {
-                        if (i != index && alarms.get(i).getHourOfDay() == hourOfDay && alarms.get(i).getMinute() == minute) {
-                            Toast.makeText(this, "This time is already set for another reminder.", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                    }
-                    
-                    alarm.setHourOfDay(hourOfDay);
-                    alarm.setMinute(minute);
-                    viewModel.saveAlarms(alarms);
-                    rescheduleAllAlarms();
-                },
-                alarm.getHourOfDay(), alarm.getMinute(), false);
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this, (view, hourOfDay, minute) -> {
+            // check duplicates
+            for (int i = 0; i < alarms.size(); i++) {
+                if (i != index && alarms.get(i).getHourOfDay() == hourOfDay && alarms.get(i).getMinute() == minute) {
+                    Toast.makeText(this, "This time is already set for another reminder.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            alarm.setHourOfDay(hourOfDay);
+            alarm.setMinute(minute);
+            viewModel.saveAlarms(alarms);
+            rescheduleAllAlarms();
+        }, alarm.getHourOfDay(), alarm.getMinute(), false);
         timePickerDialog.show();
     }
 
@@ -161,10 +156,10 @@ public class GlobalAlarmSettingsActivity extends AppCompatActivity {
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM);
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true);
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true);
-        
+
         Uri existingUri = alarm.getRingtoneUri() != null ? Uri.parse(alarm.getRingtoneUri()) : RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, existingUri);
-        
+
         ringtonePickerLauncher.launch(intent);
     }
 
@@ -179,10 +174,10 @@ public class GlobalAlarmSettingsActivity extends AppCompatActivity {
         CardRepository cardRepo = new CardRepository(this);
         List<Card> allCards = cardRepo.getAllCards();
         for (Card card : allCards) {
-             AlarmScheduler.cancelAlarms(this, card);
-             if (card.isAlarmEnabled() && !card.isPaid()) {
-                 AlarmScheduler.scheduleAlarms(this, card);
-             }
+            AlarmScheduler.cancelAlarms(this, card);
+            if (card.isAlarmEnabled() && !card.isPaid()) {
+                AlarmScheduler.scheduleAlarms(this, card);
+            }
         }
     }
 

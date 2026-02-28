@@ -24,6 +24,7 @@ public class DashboardCardAdapter extends RecyclerView.Adapter<DashboardCardAdap
 
     public interface OnCardInteractionListener {
         void onAlarmToggled(Card card, boolean isEnabled);
+
         void onCardClicked(Card card);
     }
 
@@ -89,7 +90,7 @@ public class DashboardCardAdapter extends RecyclerView.Adapter<DashboardCardAdap
 
             alarmSwitch.setOnCheckedChangeListener(null); // Prevent loop
             alarmSwitch.setChecked(card.isAlarmEnabled());
-            
+
             // Re-attach the switch listener immediately after setting checked state
             alarmSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (boundCard != null && boundCard.isAlarmEnabled() != isChecked) {
