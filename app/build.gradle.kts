@@ -44,4 +44,9 @@ dependencies {
     annotationProcessor(libs.room.compiler)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.livedata)
+    
+    testImplementation(libs.arch.core.testing)
+    androidTestImplementation(libs.arch.core.testing)
+    testImplementation(libs.mockito.core)
+    androidTestImplementation(libs.mockito.core)
 }
