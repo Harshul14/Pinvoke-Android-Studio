@@ -23,16 +23,41 @@ public class GlobalAlarmConfig {
         this.ringtoneUri = ringtoneUri;
     }
 
-    public int getId() { return id; }
-    public int getHourOfDay() { return hourOfDay; }
-    public int getMinute() { return minute; }
-    public boolean isEnabled() { return isEnabled; }
-    public String getRingtoneUri() { return ringtoneUri; }
+    public int getId() {
+        return id;
+    }
 
-    public void setHourOfDay(int hourOfDay) { this.hourOfDay = hourOfDay; }
-    public void setMinute(int minute) { this.minute = minute; }
-    public void setEnabled(boolean enabled) { isEnabled = enabled; }
-    public void setRingtoneUri(String ringtoneUri) { this.ringtoneUri = ringtoneUri; }
+    public int getHourOfDay() {
+        return hourOfDay;
+    }
+
+    public int getMinute() {
+        return minute;
+    }
+
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public String getRingtoneUri() {
+        return ringtoneUri;
+    }
+
+    public void setHourOfDay(int hourOfDay) {
+        this.hourOfDay = hourOfDay;
+    }
+
+    public void setMinute(int minute) {
+        this.minute = minute;
+    }
+
+    public void setEnabled(boolean enabled) {
+        isEnabled = enabled;
+    }
+
+    public void setRingtoneUri(String ringtoneUri) {
+        this.ringtoneUri = ringtoneUri;
+    }
 
     public JSONObject toJson() throws JSONException {
         JSONObject json = new JSONObject();
@@ -52,7 +77,7 @@ public class GlobalAlarmConfig {
         int minute = json.optInt("minute", 0);
         boolean isEnabled = json.optBoolean("isEnabled", true);
         String ringtoneUri = json.has("ringtoneUri") ? json.optString("ringtoneUri") : null;
-        
+
         return new GlobalAlarmConfig(id, hourOfDay, minute, isEnabled, ringtoneUri);
     }
 }

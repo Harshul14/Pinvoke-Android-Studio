@@ -32,17 +32,17 @@ public class AlarmReceiver extends BroadcastReceiver {
             Log.d(TAG, "Card is already paid, ignoring alarm");
             return;
         }
-        
+
         if (!card.isAlarmEnabled()) {
-             Log.d(TAG, "Alarm disabled for this card, ignoring");
-             return;
+            Log.d(TAG, "Alarm disabled for this card, ignoring");
+            return;
         }
 
         // Start Alarm Service (Foreground)
         Intent serviceIntent = new Intent(context, AlarmService.class);
         serviceIntent.putExtra(AlarmService.EXTRA_CARD_ID, card.getId());
         serviceIntent.putExtra(AlarmService.EXTRA_CARD_NAME, card.getName());
-        
+
         if (alarmId != -1) {
             GlobalAlarmRepository globalRepo = new GlobalAlarmRepository(context);
             for (GlobalAlarmConfig config : globalRepo.getAlarms()) {
@@ -52,7 +52,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 }
             }
         }
-        
+
         try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 context.startForegroundService(serviceIntent);

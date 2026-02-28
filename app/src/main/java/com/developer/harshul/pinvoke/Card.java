@@ -1,6 +1,7 @@
 package com.developer.harshul.pinvoke;
 
 import java.util.UUID;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,19 +35,53 @@ public class Card {
         this(UUID.randomUUID().toString(), name, dueDate, widgetId, false, false);
     }
 
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public long getDueDate() { return dueDate; }
-    public int getWidgetId() { return widgetId; }
-    public boolean isAlarmEnabled() { return isAlarmEnabled; }
-    public boolean isPaid() { return isPaid; }
+    public String getId() {
+        return id;
+    }
 
-    public void setId(@NonNull String id) { this.id = id; }
-    public void setWidgetId(int widgetId) { this.widgetId = widgetId; }
-    public void setName(String name) { this.name = name; }
-    public void setDueDate(long dueDate) { this.dueDate = dueDate; }
-    public void setAlarmEnabled(boolean alarmEnabled) { isAlarmEnabled = alarmEnabled; }
-    public void setPaid(boolean paid) { isPaid = paid; }
+    public String getName() {
+        return name;
+    }
+
+    public long getDueDate() {
+        return dueDate;
+    }
+
+    public int getWidgetId() {
+        return widgetId;
+    }
+
+    public boolean isAlarmEnabled() {
+        return isAlarmEnabled;
+    }
+
+    public boolean isPaid() {
+        return isPaid;
+    }
+
+    public void setId(@NonNull String id) {
+        this.id = id;
+    }
+
+    public void setWidgetId(int widgetId) {
+        this.widgetId = widgetId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDueDate(long dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public void setAlarmEnabled(boolean alarmEnabled) {
+        isAlarmEnabled = alarmEnabled;
+    }
+
+    public void setPaid(boolean paid) {
+        isPaid = paid;
+    }
 
     public JSONObject toJson() throws JSONException {
         JSONObject json = new JSONObject();
@@ -66,7 +101,7 @@ public class Card {
         // Fallback for migration or missing fields
         boolean isAlarmEnabled = json.optBoolean("isAlarmEnabled", false);
         boolean isPaid = json.optBoolean("isPaid", false);
-        
+
         return new Card(id, name, dueDate, widgetId, isAlarmEnabled, isPaid);
     }
 }

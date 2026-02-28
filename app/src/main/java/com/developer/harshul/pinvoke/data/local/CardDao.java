@@ -40,7 +40,7 @@ public interface CardDao {
 
     @Delete
     void delete(Card card);
-    
+
     @Query("DELETE FROM cards WHERE widgetId = :widgetId")
     void deleteCardsForWidget(int widgetId);
 

@@ -12,24 +12,25 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
+
 import com.google.android.material.button.MaterialButton;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (!isGranted) {
-                    Toast.makeText(this, "Notifications are required for alarms!", Toast.LENGTH_SHORT).show();
-                }
-            });
+    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+        if (!isGranted) {
+            Toast.makeText(this, "Notifications are required for alarms!", Toast.LENGTH_SHORT).show();
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
         checkPermissions();
 
         MaterialButton addWidgetButton = findViewById(R.id.add_widget_button);

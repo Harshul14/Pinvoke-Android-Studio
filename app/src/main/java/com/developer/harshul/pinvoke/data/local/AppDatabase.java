@@ -14,6 +14,7 @@ import com.developer.harshul.pinvoke.Card;
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract CardDao cardDao();
+
     public abstract AlarmConfigDao alarmConfigDao();
 
     private static volatile AppDatabase INSTANCE;
@@ -22,9 +23,7 @@ public abstract class AppDatabase extends RoomDatabase {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            AppDatabase.class, "ccwidget_database")
-                            .allowMainThreadQueries() // Temporarily allowed until UI gets ViewModels
+                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, "ccwidget_database").allowMainThreadQueries() // Temporarily allowed until UI gets ViewModels
                             .build();
                 }
             }

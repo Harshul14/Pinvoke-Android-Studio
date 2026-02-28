@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
+
 import androidx.core.content.ContextCompat;
 
 import org.json.JSONArray;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.developer.harshul.pinvoke.AppExecutors;
+
 import java.util.concurrent.TimeUnit;
 
 public class CreditCardWidgetProvider extends AppWidgetProvider {
@@ -87,7 +89,7 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
                     card.setPaid(false); // Reset paid status for new month
                     repository.updateCard(card);
                 }
-                
+
                 cardDataList.add(new CardData(card.getName(), card.getDueDate()));
             }
 
@@ -169,12 +171,12 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
                 card.setDueDate(updatedDueDate);
                 card.setPaid(false); // Reset paid status for new month
             }
-            
+
             cardDataList.add(new CardData(card.getName(), card.getDueDate()));
 
             updatedCardsArray.put(card.toJson());
         }
-        
+
         Collections.sort(cardDataList, (c1, c2) -> Long.compare(c1.dueDate, c2.dueDate));
 
         return new ParseResult(cardDataList, dataUpdated ? updatedCardsArray : null, dataUpdated);
@@ -233,7 +235,7 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
                 textColor = ContextCompat.getColor(context, R.color.success);
             }
         }
-        
+
         return new DaysDisplayInfo(daysText, label, textColor);
     }
 
@@ -288,9 +290,9 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
             Calendar nextMonth = Calendar.getInstance();
             nextMonth.setTimeInMillis(System.currentTimeMillis());
             nextMonth.add(Calendar.MONTH, 1);
-            
+
             int maxDay = nextMonth.getActualMaximum(Calendar.DAY_OF_MONTH);
-            if(dayOfMonth > maxDay) {
+            if (dayOfMonth > maxDay) {
                 dayOfMonth = maxDay;
             }
 
@@ -317,7 +319,7 @@ public class CreditCardWidgetProvider extends AppWidgetProvider {
             this.dataUpdated = dataUpdated;
         }
     }
-    
+
     private static class CardData {
         final String name;
         final long dueDate;

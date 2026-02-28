@@ -17,56 +17,56 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:gravity="center"
+        android:orientation="vertical"
         android:padding="32dp">
 
         <ImageView
             android:id="@+id/alarm_icon"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:src="@android:drawable/ic_lock_idle_alarm"
             android:background="@drawable/circle_background"
             android:backgroundTint="#FF5252"
-            android:padding="20dp"
-            app:tint="#FFFFFF"
+            android:contentDescription="Alarm Icon"
             android:elevation="8dp"
-            android:contentDescription="Alarm Icon"/>
+            android:padding="20dp"
+            android:src="@android:drawable/ic_lock_idle_alarm"
+            app:tint="#FFFFFF" />
 
         <TextView
             android:id="@+id/alarm_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="BILL DUE"
-            android:textSize="48sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-black"
-            android:textColor="#FFFFFF"
             android:layout_marginTop="40dp"
             android:layout_marginBottom="16dp"
-            android:letterSpacing="0.05" />
+            android:fontFamily="sans-serif-black"
+            android:letterSpacing="0.05"
+            android:text="BILL DUE"
+            android:textColor="#FFFFFF"
+            android:textSize="48sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/card_name_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Your credit card bill is due today."
-            android:textSize="20sp"
-            android:textColor="#B3FFFFFF"
+            android:layout_marginBottom="64dp"
             android:gravity="center"
-            android:layout_marginBottom="64dp"/>
+            android:text="Your credit card bill is due today."
+            android:textColor="#B3FFFFFF"
+            android:textSize="20sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_paid"
             android:layout_width="match_parent"
             android:layout_height="72dp"
+            android:layout_marginBottom="16dp"
             android:text="Mark as Paid"
+            android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:cornerRadius="36dp"
             app:backgroundTint="#FF5252"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="16dp"/>
+            app:cornerRadius="36dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_will_pay"
@@ -74,8 +74,8 @@
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:text="Remind Me Later"
-            android:textSize="18sp"
-            android:textColor="#B3FFFFFF"/>
+            android:textColor="#B3FFFFFF"
+            android:textSize="18sp" />
 
     </LinearLayout>
 

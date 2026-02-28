@@ -13,8 +13,8 @@ import android.view.animation.ScaleAnimation;
 import android.widget.Button;
 import android.widget.TextView;
 import android.view.View;
-import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.appcompat.app.AppCompatActivity;
 
 
 public class AlarmActivity extends AppCompatActivity {
@@ -46,25 +46,20 @@ public class AlarmActivity extends AppCompatActivity {
 
         btnPaid.setOnClickListener(v -> onPaidClicked());
         btnWillPay.setOnClickListener(v -> onWillPayClicked());
-        
+
         startPulseAnimation();
     }
 
     private void startPulseAnimation() {
         View pulseBg = findViewById(R.id.pulse_bg);
         if (pulseBg != null) {
-            ScaleAnimation scaleAnimation = new ScaleAnimation(
-                    1f, 1.5f, 1f, 1.5f,
-                    Animation.RELATIVE_TO_SELF, 0.5f,
-                    Animation.RELATIVE_TO_SELF, 0.5f
-            );
+            ScaleAnimation scaleAnimation = new ScaleAnimation(1f, 1.5f, 1f, 1.5f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
             scaleAnimation.setDuration(1000);
             scaleAnimation.setRepeatCount(Animation.INFINITE);
             scaleAnimation.setRepeatMode(Animation.REVERSE);
             pulseBg.startAnimation(scaleAnimation);
         }
     }
-
 
 
     private void showOnLockScreen() {
@@ -75,20 +70,14 @@ public class AlarmActivity extends AppCompatActivity {
             if (keyguardManager != null) {
                 keyguardManager.requestDismissKeyguard(this, null);
             }
-        } 
-        
+        }
+
         // For older devices or additional robustness
         // FLAG_FULLSCREEN makes the activity take full screen which helps on lock screen
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_FULLSCREEN |
-                WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
-        
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON | WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
+
         Log.d(TAG, "Lock screen flags set");
     }
-
 
 
     private void stopAlarm() {
@@ -107,12 +96,12 @@ public class AlarmActivity extends AppCompatActivity {
                 cal.setTimeInMillis(card.getDueDate());
                 cal.add(java.util.Calendar.MONTH, 1);
                 card.setDueDate(cal.getTimeInMillis());
-                
+
                 // Do not mark as paid so the next cycle works properly
-                card.setPaid(false); 
-                
+                card.setPaid(false);
+
                 repository.updateCard(card);
-                
+
                 // Reschedule for the new due date
                 AlarmScheduler.cancelAlarms(this, card);
                 if (card.isAlarmEnabled()) {

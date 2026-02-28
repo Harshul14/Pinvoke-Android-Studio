@@ -4,49 +4,49 @@
     android:id="@+id/widget_item_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
     android:background="@drawable/modern_widget_background"
-    android:padding="8dp"
-    android:gravity="center_vertical"
     android:elevation="8dp"
-    android:minHeight="40dp">
+    android:gravity="center_vertical"
+    android:minHeight="40dp"
+    android:orientation="horizontal"
+    android:padding="8dp">
 
     <!-- Card Info Section -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
         android:layout_marginEnd="8dp"
-        android:minWidth="80dp">
+        android:layout_weight="1"
+        android:minWidth="80dp"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/card_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:text="Credit Card"
-            android:textSize="@dimen/text_size_responsive_title"
-            android:textColor="@color/widget_on_surface"
-            android:fontFamily="sans-serif-black"
             android:ellipsize="end"
-            android:maxLines="1"
+            android:fontFamily="sans-serif-black"
             android:letterSpacing="0.01"
+            android:maxLines="1"
+            android:scrollHorizontally="false"
             android:singleLine="true"
-            android:scrollHorizontally="false" />
+            android:textColor="@color/widget_on_surface"
+            android:textSize="@dimen/text_size_responsive_title"
+            tools:text="Credit Card" />
 
         <TextView
             android:id="@+id/due_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:text="Dec 15"
-            android:textSize="@dimen/text_size_responsive_body"
-            android:textColor="@color/on_surface_variant"
             android:layout_marginTop="2dp"
-            android:fontFamily="sans-serif-medium"
             android:alpha="0.8"
             android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
             android:maxLines="1"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:textColor="@color/on_surface_variant"
+            android:textSize="@dimen/text_size_responsive_body"
+            tools:text="Dec 15" />
 
     </LinearLayout>
 
@@ -54,43 +54,43 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
         android:background="@drawable/button_background"
         android:elevation="2dp"
-        android:minWidth="40dp">
+        android:gravity="center"
+        android:minWidth="40dp"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="4dp">
 
         <TextView
             android:id="@+id/days_remaining"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_weight="1"
-            tools:text="15"
-            android:textSize="@dimen/text_size_responsive_headline"
+            android:autoSizeMaxTextSize="24sp"
+            android:autoSizeMinTextSize="10sp"
+            android:autoSizeStepGranularity="2sp"
+            android:autoSizeTextType="uniform"
             android:fontFamily="sans-serif-black"
-            android:textColor="@android:color/white"
             android:gravity="center"
             android:letterSpacing="0.02"
             android:maxLines="1"
-            android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="10sp"
-            android:autoSizeMaxTextSize="24sp"
-            android:autoSizeStepGranularity="2sp" />
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/text_size_responsive_headline"
+            tools:text="15" />
 
         <TextView
             android:id="@+id/days_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/days"
-            android:textSize="@dimen/text_size_responsive_caption"
-            android:textColor="@android:color/white"
-            android:fontFamily="sans-serif-medium"
             android:alpha="0.9"
-            android:maxLines="1" />
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:text="@string/days"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/text_size_responsive_caption" />
 
     </LinearLayout>
 
