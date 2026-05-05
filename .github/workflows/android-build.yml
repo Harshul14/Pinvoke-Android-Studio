@@ -1,0 +1,107 @@
+name: Build and Deploy Android APK
+
+# Trigger the workflow when code is pushed to the main branch
+# OR when a PR is merged into the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Android Repo (Repo A)
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          # Caches downloaded dependencies and wrapper to speed up subsequent builds
+          gradle-version: wrapper
+
+      - name: Build Release APK
+        # This creates an unsigned release APK by default unless your build.gradle
+        # is configured with signing properties.
+        run: ./gradlew assembleRelease
+
+      # --------------------------------------------------------------------------
+      # Sign the APK securely using GitHub Secrets.
+      # --------------------------------------------------------------------------
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_apk
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Checkout Website Repo (Repo B)
+        uses: actions/checkout@v4
+        with:
+          # IMPORTANT: Update this to your actual username and Repo B name
+          repository: "Harshul14/Pinvoke-Website"
+          # PAT (Personal Access Token) needed to push across repositories
+          token: ${{ secrets.WEBSITE_REPO_PAT }}
+          path: "website-repo"
+
+      - name: Copy and Version APK
+        run: |
+          # Ensure target directory exists in Website Repo
+          mkdir -p website-repo/public/apk
+
+          # Get the signed APK path from the previous step
+          APK_PATH="${{ steps.sign_apk.outputs.signedReleaseFile }}"
+
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: APK not found."
+            exit 1
+          fi
+
+          # Get short commit SHA for versioning
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          VERSIONED_APK="pinvoke-release-${SHORT_SHA}.apk"
+          LATEST_APK="pinvoke-latest.apk"
+
+          # Copy APK with versioned name
+          cp "$APK_PATH" "website-repo/public/apk/$VERSIONED_APK"
+
+          # Also create a static "latest" copy so your website can link to it easily
+          cp "$APK_PATH" "website-repo/public/apk/$LATEST_APK"
+
+          # Export variables for next step
+          echo "VERSIONED_APK=$VERSIONED_APK" >> $GITHUB_ENV
+          echo "LATEST_APK=$LATEST_APK" >> $GITHUB_ENV
+
+      - name: Commit and Push to Website Repo
+        run: |
+          cd website-repo
+
+          # Configure Git user for the bot
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          # Stage the APK files
+          git add public/apk/
+
+          # Check if there are actual changes (in case build didn't change)
+          if git diff --staged --quiet; then
+            echo "No new APK changes to commit."
+            exit 0
+          fi
+
+          # Commit the changes.
+          # We do NOT use [skip ci] here because we WANT Vercel to trigger a deployment.
+          git commit -m "feat: update Android APK to $VERSIONED_APK"
+
+          # Push to the main branch of Repo B
+          git push origin main
