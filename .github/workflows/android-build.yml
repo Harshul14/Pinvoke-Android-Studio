@@ -30,7 +30,9 @@ jobs:
       - name: Build Release APK
         # This creates an unsigned release APK by default unless your build.gradle
         # is configured with signing properties.
-        run: ./gradlew assembleRelease
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
 
       # --------------------------------------------------------------------------
       # Sign the APK securely using GitHub Secrets.
