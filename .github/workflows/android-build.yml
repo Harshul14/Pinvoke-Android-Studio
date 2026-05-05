@@ -38,15 +38,36 @@ jobs:
       # Sign the APK securely using GitHub Secrets.
       # --------------------------------------------------------------------------
       - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_apk
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          buildToolsVersion: 34.0.0
+        run: |
+          # Decode the base64-encoded keystore from GitHub Secrets
+          echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > keystore.jks
+
+          # Find the unsigned APK
+          UNSIGNED_APK=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
+          SIGNED_APK="app/build/outputs/apk/release/pinvoke-signed.apk"
+
+          # Locate apksigner from the highest available build-tools version
+          BUILD_TOOLS_DIR=$(ls -d /usr/local/lib/android/sdk/build-tools/* | sort -V | tail -1)
+          echo "Using build tools: $BUILD_TOOLS_DIR"
+
+          # Sign the APK
+          $BUILD_TOOLS_DIR/apksigner sign \
+            --ks keystore.jks \
+            --ks-key-alias "${{ secrets.ALIAS }}" \
+            --ks-pass pass:"${{ secrets.KEY_STORE_PASSWORD }}" \
+            --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
+            --out "$SIGNED_APK" \
+            "$UNSIGNED_APK"
+
+          # Verify the signature
+          $BUILD_TOOLS_DIR/apksigner verify "$SIGNED_APK"
+          echo "APK signed successfully: $SIGNED_APK"
+
+          # Export the signed APK path for the next step
+          echo "SIGNED_APK_PATH=$SIGNED_APK" >> $GITHUB_ENV
+
+          # Clean up keystore
+          rm -f keystore.jks
 
       - name: Checkout Website Repo (Repo B)
         uses: actions/checkout@v4
@@ -63,7 +84,7 @@ jobs:
           mkdir -p website-repo/public/apk
 
           # Get the signed APK path from the previous step
-          APK_PATH="${{ steps.sign_apk.outputs.signedReleaseFile }}"
+          APK_PATH="$SIGNED_APK_PATH"
 
           if [ -z "$APK_PATH" ]; then
             echo "Error: APK not found."
